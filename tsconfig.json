@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["next-auth", "next-auth/jwt"],
     "target": "ES2017",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
@@ -18,6 +19,7 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".", // 👈 Required for `@/` alias
     "paths": {
       "@/*": ["./*"]
     }

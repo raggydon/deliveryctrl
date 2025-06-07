@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+body {
+  @apply bg-white text-gray-900 font-sans;
+}
+
+button {
+  @apply transition-all duration-200;
+}
+

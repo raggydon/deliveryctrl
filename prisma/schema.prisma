@@ -1,0 +1,183 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String?
+  name      String
+  role      UserRole
+  createdAt DateTime @default(now())
+
+  accounts Account[]
+  sessions Session[]
+  driver   Driver?
+  admin    Admin?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  user              User    @relation(fields: [userId], references: [id])
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  expires      DateTime
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Admin {
+  id         String     @id @default(uuid())
+  company    String
+  inviteKey  String     @unique
+  createdAt  DateTime   @default(now())
+  userId     String     @unique
+  user       User       @relation(fields: [userId], references: [id])
+  drivers    Driver[]
+  deliveries Delivery[]
+}
+
+model Driver {
+  id          String      @id @default(uuid())
+  name        String
+  vehicleType VehicleType
+  shift       Shift
+  baseSalary  Int
+  joiningDate DateTime    @default(now())
+  createdAt   DateTime    @default(now())
+  isActive   Boolean   @default(true)
+  adminId     String
+  admin       Admin       @relation(fields: [adminId], references: [id])
+  userId      String      @unique
+  user        User        @relation(fields: [userId], references: [id])
+  lastSalaryPayout DateTime?
+  deliveries  Delivery[]
+  attendances      Attendance[]
+   salaryPayouts SalaryPayout[]
+  salaryOverrides DailySalaryOverride[]
+}
+
+model Delivery {
+  id                String      @id @default(uuid())
+  description       String
+  address           String
+  size              PackageSize
+  deliveryDate      DateTime
+  timePreference    Shift
+  vehiclePreference VehicleType
+  price             Int
+  assigned          Boolean     @default(false)
+
+  status            DeliveryStatus @default(NOT_PICKED)
+
+  // Link to Admin who created this delivery
+  adminId String
+  admin   Admin  @relation(fields: [adminId], references: [id])
+
+  // Optional link to assigned Driver
+  driverId String?
+  driver   Driver? @relation(fields: [driverId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  date      DateTime
+  shift     Shift
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relation to Driver
+  driver    Driver   @relation(fields: [driverId], references: [id])
+  driverId  String
+
+  @@unique([driverId, date, shift]) // Ensure one entry per driver per shift per day
+}
+
+model DailySalaryOverride {
+  id        String   @id @default(cuid())
+  driverId  String
+  date      DateTime
+  actualPaid Int     // 💰 not deduction, but paid value
+  reason    String?
+  createdAt DateTime @default(now())
+
+  driver    Driver   @relation(fields: [driverId], references: [id])
+
+  @@unique([driverId, date])
+}
+
+model SalaryPayout {
+  id           String   @id @default(uuid())
+  driver       Driver   @relation(fields: [driverId], references: [id])
+  driverId     String
+  totalAmount  Int
+  paidAt       DateTime @default(now())
+}
+
+
+
+enum DeliveryStatus {
+  NOT_PICKED
+  IN_TRANSIT
+  DELIVERED
+}
+
+
+enum PackageSize {
+  SMALL
+  LARGE
+}
+
+enum VehicleType {
+  BIKE
+  MINI_TRUCK
+}
+
+enum Shift {
+  MORNING
+  EVENING
+  BOTH
+}
+
+enum UserRole {
+  ADMIN
+  DRIVER
+}

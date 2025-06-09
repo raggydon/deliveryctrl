@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import { startOfDay } from "date-fns";
 
 export async function GET(req: Request) {
     const session = await getServerSession(authOptions);
@@ -29,19 +30,31 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Driver not found" }, { status: 404 });
     }
 
-    const startDate = driver.lastSalaryPayout || driver.joiningDate;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // 🔍 Get the most recent salary payout
+    const lastPayout = await prisma.salaryPayout.findFirst({
+        where: { driverId },
+        orderBy: { paidAt: "desc" },
+    });
 
+    const payouts = await prisma.salaryPayout.findMany({
+        where: { driverId },
+        orderBy: { paidAt: "desc" },
+    });
+
+    const startDate = startOfDay(new Date(driver.joiningDate));
+
+    const today = startOfDay(new Date());
     const dailySalary = Math.round(driver.baseSalary / 30);
+
     const overridesMap = new Map(
-        driver.salaryOverrides.map((o) => [o.date.toDateString(), o.actualPaid])
+        driver.salaryOverrides.map((o) => [o.date.toISOString().split("T")[0], o.actualPaid])
     );
 
     const breakdown: { date: string; amount: number; overridden: boolean }[] = [];
 
-    for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
-        const dateStr = new Date(d).toDateString();
+    const loopDate = new Date(startDate);
+    while (loopDate <= today) {
+        const dateStr = loopDate.toISOString().split("T")[0];
 
         if (overridesMap.has(dateStr)) {
             breakdown.push({
@@ -56,7 +69,14 @@ export async function GET(req: Request) {
                 overridden: false,
             });
         }
+
+        loopDate.setDate(loopDate.getDate() + 1);
     }
 
-    return NextResponse.json({ breakdown });
+    return NextResponse.json({
+        breakdown,
+        payouts,
+        lastPayoutDate: lastPayout ? startOfDay(lastPayout.paidAt).toISOString().split("T")[0] : null
+    });
+
 }

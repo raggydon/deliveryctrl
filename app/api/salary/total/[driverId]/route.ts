@@ -27,9 +27,15 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: "Driver not found" }, { status: 404 });
     }
 
-    const startDate = driver.lastSalaryPayout || driver.joiningDate;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    let startDate = new Date(driver.joiningDate);
+    if (driver.lastSalaryPayout) {
+        startDate = new Date(driver.lastSalaryPayout);
+        startDate.setDate(startDate.getDate() + 1); // start the next day
+    }
+    startDate.setHours(0, 0, 0, 0);
 
     const dailySalary = Math.round(driver.baseSalary / 30);
     const overridesMap = new Map(

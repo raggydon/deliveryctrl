@@ -1,5 +1,3 @@
-// app/api/salary/adjust/route.ts
-
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -25,8 +23,8 @@ export async function POST(req: Request) {
                     date: today,
                 },
             },
-            update: { amount, reason },
-            create: { driverId, date: today, amount, reason },
+            update: { actualPaid: amount, reason },
+            create: { driverId, date: today, actualPaid: amount, reason },
         });
 
         return NextResponse.json({ success: true, override });

@@ -29,7 +29,14 @@ export default function YourDriversPage() {
     const [reason, setReason] = useState("");
 
     const [breakdownModalOpen, setBreakdownModalOpen] = useState(false);
-    const [breakdownData, setBreakdownData] = useState<any[]>([]);
+    const [breakdownData, setBreakdownData] = useState<{
+        breakdown: { date: string; amount: number }[];
+        payouts: { paidAt: string; totalAmount: number }[];
+    }>({
+        breakdown: [],
+        payouts: [],
+    });
+
     const [breakdownDriverName, setBreakdownDriverName] = useState("");
 
     const selectedDriver = drivers.find((d) => d.id === selectedDriverId);
@@ -109,7 +116,11 @@ export default function YourDriversPage() {
         setBreakdownDriverName(driver?.name || "");
         const res = await fetch(`/api/salary/breakdown/${driverId}`);
         const json = await res.json();
-        setBreakdownData(json.breakdown || []);
+        setBreakdownData({
+            breakdown: json.breakdown || [],
+            payouts: json.payouts || [],
+        });
+
     };
 
     if (loading) {
@@ -236,26 +247,46 @@ export default function YourDriversPage() {
                 <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
                     <div className="bg-white rounded-xl p-6 max-w-xl w-full text-sm">
                         <h2 className="text-lg font-semibold mb-3">Breakdown: {breakdownDriverName}</h2>
+
+                        <h3 className="text-md font-semibold mb-2 mt-4">Payout History</h3>
+                        <div className="border rounded mb-4 max-h-[150px] overflow-y-auto">
+                            <table className="w-full text-sm">
+                                <thead className="bg-gray-50 border-b sticky top-0">
+                                    <tr>
+                                        <th className="p-2 text-left">Paid On</th>
+                                        <th className="p-2 text-left">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {breakdownData.payouts?.map((p: any, idx: number) => (
+                                        <tr key={idx} className="border-b">
+                                            <td className="p-2">{new Date(p.paidAt).toISOString().split("T")[0]}</td>
+                                            <td className="p-2">₹{p.totalAmount}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
                         <div className="overflow-y-auto max-h-[300px] border rounded">
                             <table className="w-full">
                                 <thead className="bg-gray-100 border-b">
                                     <tr>
                                         <th className="p-2 text-left">Date</th>
                                         <th className="p-2 text-left">Amount</th>
-                                        <th className="p-2 text-left">Type</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {breakdownData.map((entry, idx) => (
+                                    {[...breakdownData.breakdown || []].reverse().map((entry, idx) => (
                                         <tr key={idx} className="border-b">
                                             <td className="p-2">{entry.date}</td>
                                             <td className="p-2">₹{entry.amount}</td>
-                                            <td className="p-2">{entry.overridden ? "Adjusted" : "Default"}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
                         </div>
+
                         <div className="mt-4 flex justify-end">
                             <button onClick={() => setBreakdownModalOpen(false)} className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded">
                                 Close
@@ -263,6 +294,8 @@ export default function YourDriversPage() {
                         </div>
                     </div>
                 </div>
+
+
             )}
         </main>
     );

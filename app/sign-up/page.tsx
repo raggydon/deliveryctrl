@@ -3,6 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+const AddToHomeScreenPrompt = dynamic(
+    () => import(".././components/InstallAppButton"),
+    { ssr: false }
+);
 
 export default function SignUpPage() {
     const router = useRouter();
@@ -51,6 +57,7 @@ export default function SignUpPage() {
                 </div>
             </div>
 
+            {/* Sign-Up Form */}
             <div className="w-full max-w-md bg-white/60 backdrop-blur-lg border border-gray-200 rounded-2xl p-6 shadow-md">
                 <h1 className="text-2xl font-semibold mb-6 text-center">Create an Account</h1>
 
@@ -115,6 +122,9 @@ export default function SignUpPage() {
                     </Link>
                 </p>
             </div>
+
+            {/* Install App Button */}
+            <AddToHomeScreenPrompt />
         </main>
     );
 }

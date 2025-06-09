@@ -4,6 +4,11 @@ import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+
+const InstallAppButton = dynamic(() => import(".././components/InstallAppButton"), {
+    ssr: false,
+});
 
 export default function SignInPage() {
     const router = useRouter();
@@ -88,6 +93,9 @@ export default function SignInPage() {
                     </Link>
                 </p>
             </div>
+
+            {/* Install App Button for mobile */}
+            <InstallAppButton />
         </main>
     );
 }

@@ -105,12 +105,11 @@ model Delivery {
   assigned          Boolean     @default(false)
 
   status            DeliveryStatus @default(NOT_PICKED)
+  failureReason     String?         // 🆕 Optional reason for FAILED_ATTEMPT
 
-  // Link to Admin who created this delivery
   adminId String
   admin   Admin  @relation(fields: [adminId], references: [id])
 
-  // Optional link to assigned Driver
   driverId String?
   driver   Driver? @relation(fields: [driverId], references: [id])
 
@@ -159,6 +158,7 @@ enum DeliveryStatus {
   NOT_PICKED
   IN_TRANSIT
   DELIVERED
+  FAILED_ATTEMPT
 }
 
 

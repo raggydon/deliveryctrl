@@ -9,12 +9,16 @@ interface Delivery {
     description: string;
     address: string;
     deliveryDate: string;
-    status: "NOT_PICKED" | "IN_TRANSIT" | "DELIVERED";
+    status: "NOT_PICKED" | "IN_TRANSIT" | "DELIVERED" | "FAILED_ATTEMPT";
+    failureReason?: string | null;
 }
 
 export default function DriverDeliveries() {
     const [deliveries, setDeliveries] = useState<Delivery[]>([]);
     const [error, setError] = useState("");
+    const [showReasonModal, setShowReasonModal] = useState(false);
+    const [selectedDeliveryId, setSelectedDeliveryId] = useState<string | null>(null);
+    const [failureReason, setFailureReason] = useState("");
     const { data: session } = useSession();
     const router = useRouter();
 
@@ -31,31 +35,27 @@ export default function DriverDeliveries() {
         fetchDeliveries();
     }, []);
 
-    const updateStatus = async (id: string, nextStatus: Delivery["status"]) => {
+    const updateStatus = async (id: string, nextStatus: Delivery["status"], reason?: string) => {
         const res = await fetch(`/api/delivery/status/${id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: nextStatus }),
+            body: JSON.stringify({
+                status: nextStatus,
+                ...(nextStatus === "FAILED_ATTEMPT" && reason ? { failureReason: reason } : {}),
+            }),
         });
 
         if (res.ok) {
+            const updatedDelivery = await res.json();
             setDeliveries((prev) =>
-                prev.map((d) => (d.id === id ? { ...d, status: nextStatus } : d))
+                prev.map((d) => (d.id === id ? updatedDelivery : d))
             );
+            setShowReasonModal(false);
+            setFailureReason("");
+            setSelectedDeliveryId(null);
         } else {
             const data = await res.json();
             setError(data.error || "Failed to update status.");
-        }
-    };
-
-    const getNextStatus = (status: Delivery["status"]) => {
-        switch (status) {
-            case "NOT_PICKED":
-                return "IN_TRANSIT";
-            case "IN_TRANSIT":
-                return "DELIVERED";
-            default:
-                return null;
         }
     };
 
@@ -73,7 +73,8 @@ export default function DriverDeliveries() {
         const getStatusPriority = (status: Delivery["status"]) => {
             if (status === "NOT_PICKED") return 0;
             if (status === "IN_TRANSIT") return 1;
-            return 2;
+            if (status === "FAILED_ATTEMPT") return 2;
+            return 3;
         };
 
         const dateDiff = getDatePriority(dateA) - getDatePriority(dateB);
@@ -122,22 +123,46 @@ export default function DriverDeliveries() {
                                             ? "text-green-700 font-medium"
                                             : delivery.status === "IN_TRANSIT"
                                                 ? "text-yellow-700 font-medium"
-                                                : "text-red-600 font-medium"
+                                                : delivery.status === "FAILED_ATTEMPT"
+                                                    ? "text-red-700 font-medium"
+                                                    : "text-red-600 font-medium"
                                     }>
                                         {delivery.status.replace("_", " ")}
                                     </span>
                                 </p>
+
+                                {delivery.status === "FAILED_ATTEMPT" && delivery.failureReason && (
+                                    <p><b>Reason:</b> {delivery.failureReason}</p>
+                                )}
                             </div>
 
-                            {delivery.status !== "DELIVERED" && (
+                            {delivery.status === "NOT_PICKED" && (
                                 <button
-                                    onClick={() =>
-                                        updateStatus(delivery.id, getNextStatus(delivery.status)!)
-                                    }
+                                    onClick={() => updateStatus(delivery.id, "IN_TRANSIT")}
                                     className="mt-4 px-4 py-2 bg-gray-800 hover:bg-black text-white text-sm rounded transition"
                                 >
-                                    Mark as {getNextStatus(delivery.status)?.replace("_", " ")}
+                                    Mark as In Transit
                                 </button>
+                            )}
+
+                            {delivery.status === "IN_TRANSIT" && (
+                                <div className="flex flex-col gap-2 mt-4 sm:flex-row">
+                                    <button
+                                        onClick={() => updateStatus(delivery.id, "DELIVERED")}
+                                        className="px-4 py-2 bg-green-700 hover:bg-green-800 text-white text-sm rounded transition"
+                                    >
+                                        Mark as Delivered
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setSelectedDeliveryId(delivery.id);
+                                            setShowReasonModal(true);
+                                        }}
+                                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded transition"
+                                    >
+                                        Mark as Failed
+                                    </button>
+                                </div>
                             )}
                         </li>
                     ))}
@@ -152,6 +177,40 @@ export default function DriverDeliveries() {
                     ← Back to Home
                 </button>
             </div>
+
+            {/* Reason Modal */}
+            {showReasonModal && selectedDeliveryId && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-xl shadow-lg w-[90%] max-w-md">
+                        <h2 className="text-lg font-semibold mb-2 text-gray-800">Reason for Failed Delivery</h2>
+                        <textarea
+                            value={failureReason}
+                            onChange={(e) => setFailureReason(e.target.value)}
+                            className="w-full border border-gray-300 rounded p-2 mb-4 resize-none"
+                            rows={4}
+                            placeholder="e.g. Customer not available, wrong address..."
+                        ></textarea>
+
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={() => setShowReasonModal(false)}
+                                className="px-3 py-2 text-sm rounded bg-gray-200 hover:bg-gray-300 text-gray-800"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() =>
+                                    updateStatus(selectedDeliveryId, "FAILED_ATTEMPT", failureReason)
+                                }
+                                className="px-4 py-2 text-sm rounded bg-red-600 hover:bg-red-700 text-white"
+                                disabled={!failureReason.trim()}
+                            >
+                                Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </main>
     );
 }

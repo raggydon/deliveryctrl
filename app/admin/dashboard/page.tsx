@@ -100,7 +100,8 @@ export default async function AdminDashboard() {
                                 const getStatusPriority = (status: string) => {
                                     if (status === "NOT_PICKED") return 0;
                                     if (status === "IN_TRANSIT") return 1;
-                                    return 2;
+                                    if (status === "FAILED_ATTEMPT") return 2;
+                                    return 3;
                                 };
                                 const dateCompare =
                                     getDatePriority(a.deliveryDate) -
@@ -123,12 +124,15 @@ export default async function AdminDashboard() {
                                                     ? "bg-green-100 text-green-800"
                                                     : delivery.status === "IN_TRANSIT"
                                                         ? "bg-yellow-100 text-yellow-800"
-                                                        : "bg-red-100 text-red-800"
+                                                        : delivery.status === "FAILED_ATTEMPT"
+                                                            ? "bg-red-100 text-red-800"
+                                                            : "bg-red-100 text-red-800"
                                                 }`}
                                         >
                                             {delivery.status.replace("_", " ")}
                                         </span>
                                     </div>
+
                                     <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
                                         <p>
                                             <span className="font-medium">Date:</span>{" "}
@@ -149,6 +153,13 @@ export default async function AdminDashboard() {
                                                 <span className="text-red-500">Unassigned</span>
                                             )}
                                         </p>
+
+                                        {delivery.status === "FAILED_ATTEMPT" &&
+                                            delivery.failureReason && (
+                                                <p className="col-span-2 text-red-700 font-medium mt-2">
+                                                    🚫 <b>Failed Reason:</b> {delivery.failureReason}
+                                                </p>
+                                            )}
                                     </div>
                                 </li>
                             ))}
@@ -157,6 +168,7 @@ export default async function AdminDashboard() {
                     <p className="text-gray-500">No deliveries found.</p>
                 )}
             </div>
+
         </main>
     );
 }

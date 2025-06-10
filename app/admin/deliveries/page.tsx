@@ -87,7 +87,9 @@ export default async function AdminDeliveriesPage() {
                                                     ? "bg-green-100 text-green-800"
                                                     : delivery.status === "IN_TRANSIT"
                                                         ? "bg-yellow-100 text-yellow-800"
-                                                        : "bg-red-100 text-red-800"
+                                                        : delivery.status === "FAILED_ATTEMPT"
+                                                            ? "bg-red-100 text-red-800"
+                                                            : "bg-red-100 text-red-800"
                                                 }`}
                                         >
                                             {delivery.status.replace("_", " ")}
@@ -100,16 +102,14 @@ export default async function AdminDeliveriesPage() {
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
                                         <p>
-                                            <span className="font-medium">Address:</span>{" "}
-                                            {delivery.address}
+                                            <span className="font-medium">Address:</span> {delivery.address}
                                         </p>
                                         <p>
                                             <span className="font-medium">Date:</span>{" "}
                                             {new Date(delivery.deliveryDate).toDateString()}
                                         </p>
                                         <p>
-                                            <span className="font-medium">Size:</span>{" "}
-                                            {delivery.size}
+                                            <span className="font-medium">Size:</span> {delivery.size}
                                         </p>
                                         <p>
                                             <span className="font-medium">Vehicle:</span>{" "}
@@ -125,6 +125,12 @@ export default async function AdminDeliveriesPage() {
                                         </p>
                                     </div>
 
+                                    {delivery.status === "FAILED_ATTEMPT" && delivery.failureReason && (
+                                        <p className="mt-3 text-red-700 font-medium">
+                                            <b>Failed Reason:</b> {delivery.failureReason}
+                                        </p>
+                                    )}
+
                                     {!delivery.assigned && (
                                         <div className="mt-4">
                                             <Link
@@ -136,6 +142,7 @@ export default async function AdminDeliveriesPage() {
                                         </div>
                                     )}
                                 </li>
+
                             ))}
                     </ul>
                 )}

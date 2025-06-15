@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<!-- GitHub README for DeliveryCtrl App -->
 
-## Getting Started
+<h1 align="center">🚚 DeliveryCTRL</h1>
 
-First, run the development server:
+<p align="center">
+  A full-stack logistics and delivery management web app designed for admin-driver coordination with shift-based logic, salary automation, and bulk delivery support.
+</p>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+<p align="center">
+  <img src="https://raw.githubusercontent.com/platane/platane/output/github-contribution-grid-snake.svg" alt="animated contribution snake" />
+</p>
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+<h3 align="center">📦 Key Features</h3>
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+<ul>
+  <li><b>Role-based Access:</b> Admins and Drivers have distinct dashboards</li>
+  <li><b>Delivery Assignment:</b> Admins can assign deliveries based on vehicle & shift constraints</li>
+  <li><b>Shift System:</b> Morning, Evening, or Both — impacts delivery eligibility and salary</li>
+  <li><b>Smart Salary Rules:</b> Auto-calculated based on attendance, shift, vehicle, and manual overrides</li>
+  <li><b>Bulk Delivery Upload:</b> Upload an Excel (.xlsx) to add multiple deliveries at once</li>
+  <li><b>Live Status Updates:</b> Drivers can mark deliveries as Picked, In Transit, Delivered</li>
+  <li><b>Payout History:</b> Salary breakdown with date-wise tracking & payout logs for both admin and driver</li>
+  <li><b>Mobile-Responsive + PWA:</b> Add-to-home prompt and optimized UX across devices</li>
+</ul>
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+<h3 align="center">🛠️ Tech Stack</h3>
 
-## Learn More
+<p align="center">
+  <b>Frontend:</b> Next.js 14 • TailwindCSS • React<br/>
+  <b>Backend:</b> Next.js API Routes • Prisma ORM • PostgreSQL<br/>
+  <b>Auth:</b> NextAuth.js (Google + Credentials)<br/>
+  <b>Features:</b> Excel Parsing with SheetJS • Attendance Tracking • Delivery Status Transitions • Salary Engine<br/>
+  <b>Deployable As:</b> PWA-compatible web app
+</p>
 
-To learn more about Next.js, take a look at the following resources:
+<h3 align="center">💻 Getting Started</h3>
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+<ol>
+  <li>Clone the repository:
+    <pre><code>git clone https://github.com/your-username/deliveryctrl.git</code></pre>
+  </li>
+  <li>Install dependencies:
+    <pre><code>cd deliveryctrl
+npm install</code></pre>
+  </li>
+  <li>Set up environment variables:
+    <pre><code>cp .env.example .env</code></pre>
+    <p>Edit the <code>.env</code> file to include your PostgreSQL URL, NEXTAUTH secret or USE</p>
+    <p>DATABASE_URL="postgresql://neondb_owner:npg_f2YOCaxIcE4e@ep-shiny-moon-a1ljxvbr-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require"</p>
+<p>NEXTAUTH_SECRET="X5kZG2Kf0MIK9BYnA4oLMREhqjkSKTCH1Qoz5MOGwLM="</p>
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+<p>NEXT_PUBLIC_APP_URL=http://localhost:3000</p>
 
-## Deploy on Vercel
+<p>NEXT_PUBLIC_BASE_URL=http://localhost:3000</p>
+  </li>
+  <li>Push Prisma schema to DB:
+    <pre><code>npx prisma db push</code></pre>
+  </li>
+  <li>Start the development server:
+    <pre><code>npm run dev</code></pre>
+  </li>
+</ol>
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+<h3 align="center">👤 Built by Raghav Kumar</h3>

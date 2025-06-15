@@ -1,188 +1,140 @@
-// prisma/seed.js
-const { PrismaClient } = require('@prisma/client');
-const { faker } = require('@faker-js/faker');
-const bcrypt = require('bcrypt');
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
+import { addDays, subDays } from "date-fns";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Seeding with hashed passwords...");
-
-  // 1. Create Admin User
-  const adminPassword = await bcrypt.hash('secureadmin123', 10);
+  // Create Admin
+  const hashedAdminPass = await bcrypt.hash("superadmin123", 10);
   const adminUser = await prisma.user.create({
     data: {
-      email: 'admin2@ctrl.com',
-      name: 'Admin Two',
-      role: 'ADMIN',
-      password: adminPassword,
+      email: "adminshow@ctrl.com",
+      password: hashedAdminPass,
+      name: "Showcase Admin",
+      role: "ADMIN",
+      admin: {
+  create: {
+    company: "Demo Logistics Inc",
+    inviteKey: "showcase-invite-key",
+  },
+}
+,
+
     },
   });
 
-  const admin = await prisma.admin.create({
-    data: {
-      userId: adminUser.id,
-      company: 'SuperFast Couriers',
-      inviteKey: 'ADMIN456',
+  // Driver config presets
+  const driverConfigs = [
+    { email: "driver101@ctrl.com", vehicle: "BIKE", shift: "MORNING", missed: 0 },
+    { email: "driver102@ctrl.com", vehicle: "MINI_TRUCK", shift: "EVENING", missed: 2 },
+    { email: "driver103@ctrl.com", vehicle: "BIKE", shift: "BOTH", missed: 0 },
+    { email: "driver104@ctrl.com", vehicle: "MINI_TRUCK", shift: "BOTH", missed: 1 },
+    { email: "driver105@ctrl.com", vehicle: "BIKE", shift: "MORNING", missed: 3 },
+    { email: "driver106@ctrl.com", vehicle: "MINI_TRUCK", shift: "EVENING", missed: 0 },
+    { email: "driver107@ctrl.com", vehicle: "BIKE", shift: "EVENING", missed: 1, override: 100 },
+    { email: "driver108@ctrl.com", vehicle: "MINI_TRUCK", shift: "BOTH", missed: 0 },
+    { email: "driver109@ctrl.com", vehicle: "BIKE", shift: "BOTH", missed: 1 },
+    { email: "driver110@ctrl.com", vehicle: "MINI_TRUCK", shift: "MORNING", missed: 0, paid: true },
+  ];
+
+  for (let i = 0; i < driverConfigs.length; i++) {
+    const cfg = driverConfigs[i];
+    const hashedPass = await bcrypt.hash(`driverpass${101 + i}`, 10);
+
+    const userWithDriver = await prisma.user.create({
+  data: {
+    email: cfg.email,
+    password: hashedPass,
+    name: `Driver ${101 + i}`,
+    role: "DRIVER",
+    driver: {
+      create: {
+        vehicleType: cfg.vehicle,
+        shiftPreference: cfg.shift,
+        adminId: adminUser.admin.id,
+        joiningDate: subDays(new Date(), 20),
+      },
     },
-  });
+  },
+  include: {
+    driver: true,
+  },
+});
 
-  console.log("✅ Admin created");
+const driver = userWithDriver.driver;
 
-  // 2. Create Drivers
-  const shifts = ['MORNING', 'EVENING', 'BOTH'];
-  const vehicles = ['BIKE', 'MINI_TRUCK'];
-  const drivers = [];
 
-  for (let i = 0; i < 10; i++) {
-    const shift = shifts[i % shifts.length];
-    const vehicleType = vehicles[i % vehicles.length];
-    const password = await bcrypt.hash(`driverpass${i + 1}`, 10);
-    const email = `driver${i + 11}@ctrl.com`; // starts at driver11@ctrl.com
+    // Create attendance records (20 days total)
+    for (let d = 0; d < 20; d++) {
+      const day = subDays(new Date(), d);
+      if (cfg.missed && d < cfg.missed) continue;
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        name: faker.person.fullName(),
-        role: 'DRIVER',
-        password,
-      },
-    });
-
-    const baseSalary =
-      vehicleType === 'BIKE'
-        ? shift === 'MORNING'
-          ? 8000
-          : shift === 'EVENING'
-          ? 5000
-          : 15000
-        : shift === 'MORNING'
-        ? 12000
-        : shift === 'EVENING'
-        ? 8000
-        : 25000;
-
-    const driver = await prisma.driver.create({
-      data: {
-        name: user.name,
-        vehicleType,
-        shift,
-        baseSalary,
-        joiningDate: new Date('2025-01-01'),
-        userId: user.id,
-        adminId: admin.id,
-      },
-    });
-
-    drivers.push({ ...driver, rawPassword: `driverpass${i + 1}`, email });
-  }
-
-  console.log("✅ 10 drivers created with hashed passwords");
-
-  // 3. Attendance: June 1–9
-  const dateRange = [...Array(9)].map((_, i) => {
-    const d = new Date('2025-06-01');
-    d.setDate(d.getDate() + i);
-    return d;
-  });
-
-  for (const driver of drivers) {
-    for (const date of dateRange) {
-      const shiftArray = driver.shift === 'BOTH' ? ['MORNING', 'EVENING'] : [driver.shift];
-      for (const shift of shiftArray) {
-        await prisma.attendance.create({
-          data: {
-            driverId: driver.id,
-            date,
-            shift,
-            active: Math.random() < 0.9,
-          },
-        });
-      }
-    }
-  }
-
-  console.log("✅ Attendance created");
-
-  // 4. Deliveries
-  for (const date of dateRange) {
-    for (let i = 0; i < 5; i++) {
-      const vehiclePreference = Math.random() < 0.5 ? 'BIKE' : 'MINI_TRUCK';
-      const size = vehiclePreference === 'BIKE' ? 'SMALL' : Math.random() < 0.5 ? 'SMALL' : 'LARGE';
-
-      const eligibleDrivers = drivers.filter((d) =>
-        d.vehicleType === vehiclePreference &&
-        (d.shift === 'BOTH' || (d.shift === 'MORNING' && i % 2 === 0) || (d.shift === 'EVENING' && i % 2 === 1))
-      );
-
-      const randomDriver = Math.random() < 0.7 ? faker.helpers.arrayElement(eligibleDrivers) : null;
-
-      await prisma.delivery.create({
+      await prisma.attendance.create({
         data: {
-          description: faker.commerce.productName(),
-          address: faker.location.streetAddress(),
-          deliveryDate: date,
-          timePreference: i % 2 === 0 ? 'MORNING' : 'EVENING',
-          vehiclePreference,
-          size,
-          price: size === 'SMALL'
-            ? 50 + Math.floor(Math.random() * 50)
-            : 150 + Math.floor(Math.random() * 100),
-          assigned: !!randomDriver,
-          status: randomDriver
-            ? faker.helpers.arrayElement(['NOT_PICKED', 'IN_TRANSIT', 'DELIVERED'])
-            : 'NOT_PICKED',
-          adminId: admin.id,
-          driverId: randomDriver?.id || null,
-        },
-      });
-    }
-  }
-
-  console.log("✅ Deliveries created");
-
-  // 5. Daily Salary Overrides
-  for (const driver of drivers) {
-    const overrideDays = faker.helpers.arrayElements(dateRange, 2);
-    for (const day of overrideDays) {
-      const perDay = driver.baseSalary / (driver.shift === 'BOTH' ? 30 : 15);
-      const paid = Math.round(perDay * (0.6 + Math.random() * 0.4));
-
-      await prisma.dailySalaryOverride.upsert({
-        where: {
-          driverId_date: {
-            driverId: driver.id,
-            date: day,
-          },
-        },
-        update: {},
-        create: {
           driverId: driver.id,
           date: day,
-          actualPaid: paid,
-          reason: 'Testing override',
+          shift: cfg.shift === "BOTH" ? (d % 2 === 0 ? "MORNING" : "EVENING") : cfg.shift,
+          status: "ACTIVE",
+        },
+      });
+    }
+
+    // Salary override if defined
+    if (cfg.override) {
+      await prisma.salaryOverride.create({
+        data: {
+          driverId: driver.id,
+          date: subDays(new Date(), 1),
+          amount: cfg.override,
+        },
+      });
+    }
+
+    // Payout history if marked
+    if (cfg.paid) {
+      await prisma.salaryPayout.create({
+        data: {
+          driverId: driver.id,
+          payoutDate: subDays(new Date(), 2),
         },
       });
     }
   }
 
-  console.log("✅ Salary overrides added");
+  // Create random deliveries
+  const allDrivers = await prisma.driver.findMany();
 
-  console.log("\n🎉 Seeding complete!\n🧪 Use these credentials for testing:\n");
+  for (let i = 0; i < 30; i++) {
+    const driver = allDrivers[i % allDrivers.length];
+    const sizes = ["SMALL", "LARGE"];
+    const shifts = ["MORNING", "EVENING"];
+    const statuses = ["NOT_PICKED", "IN_TRANSIT", "DELIVERED"];
 
-  console.log("🔐 Admin:");
-  console.log("Email: admin2@ctrl.com");
-  console.log("Password: secureadmin123\n");
+    await prisma.delivery.create({
+      data: {
+        description: `Delivery #${i + 1}`,
+        address: `Block ${String.fromCharCode(65 + (i % 5))}, Street ${i + 10}`,
+        size: sizes[i % 2],
+        timePreference: shifts[i % 2],
+        vehiclePreference: driver.vehicleType,
+        price: 50 + (i % 5) * 10,
+        status: statuses[i % 3],
+        deliveryDate: addDays(new Date(), i % 3),
+        driverId: driver.id,
+        adminId: adminUser.admin.id,
+      },
+    });
+  }
 
-  console.log("👨‍💼 Drivers:");
-  drivers.forEach((d, i) => {
-    console.log(`${i + 1}. Email: ${d.email} | Password: ${d.rawPassword}`);
-  });
+  console.log("✅ Seed completed with Admin, 10 Drivers, Deliveries, Attendance, Salary");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seeding failed:", e);
+    console.error("❌ Seed error:", e);
     process.exit(1);
   })
-  .finally(() => prisma.$disconnect());
+  .finally(() => {
+    prisma.$disconnect();
+  });

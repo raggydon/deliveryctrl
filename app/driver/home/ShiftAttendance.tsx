@@ -28,12 +28,12 @@ export default function ShiftAttendance({ driverId, shift }: Props) {
             const data = await res.json();
 
             if (res.ok) {
-                setMessage(`✅ Marked active for ${shiftToMark} shift!`);
+                setMessage(`Marked active for ${shiftToMark} shift!`);
             } else {
-                setMessage(`❌ ${data.error || "Failed to mark attendance"}`);
+                setMessage(`${data.error || "Failed to mark attendance"}`);
             }
         } catch (error) {
-            setMessage("❌ Error while marking attendance");
+            setMessage("Error while marking attendance");
         }
 
         setMarking(false);

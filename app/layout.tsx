@@ -36,6 +36,7 @@ export default function RootLayout({
         <meta name="theme-color" content="#000000" />
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
         <link rel="icon" href="/favicon.png" type="image/png" />
+        {/* <link href="https://geists.vercel.app/font.css" rel="stylesheet" /> */}
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

@@ -6,7 +6,6 @@ import Link from "next/link";
 
 export default async function AdminDeliveriesPage() {
     const session = await getServerSession(authOptions);
-
     if (!session || session.user.role !== "ADMIN") {
         redirect("/sign-in");
     }
@@ -17,9 +16,7 @@ export default async function AdminDeliveriesPage() {
 
     if (!admin) {
         return (
-            <main className="p-6 text-red-500 font-semibold">
-                Admin profile not found.
-            </main>
+            <main className="p-6 text-red-500 font-semibold">Admin profile not found.</main>
         );
     }
 
@@ -30,30 +27,41 @@ export default async function AdminDeliveriesPage() {
     });
 
     return (
-        <main className="min-h-screen bg-white text-black px-6 py-10">
-            {/* DeliveryCTRL Branding */}
+        <main
+            className="min-h-screen px-6 py-14 text-[#1c1c1e]"
+            style={{
+                backgroundImage: "url('/backgrounds/delivery-ctrl-bg.png')", // use same background asset
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundAttachment: "fixed",
+            }}
+        >
+
             <div className="mb-10 flex justify-center">
-                <div className="text-3xl font-bold tracking-tight bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-200 px-6 py-4">
-                    Delivery<span className="text-gray-500">CTRL</span>
+                <div className="text-3xl font-medium tracking-tight text-gray-800 backdrop-blur-md  px-8 py-4">
+                    <h1 className="text-4xl font-[450] tracking-tight">
+                        Delivery<span className="text-gray-400">CTRL</span>
+                    </h1>
                 </div>
             </div>
 
-            <div className="w-full max-w-5xl mx-auto space-y-8">
-                {/* Header & Back Button */}
+            <div className="w-full max-w-5xl mx-auto space-y-10">
+                {/* Header Row */}
                 <div className="flex justify-between items-center">
-                    <h1 className="text-3xl font-bold">All Deliveries</h1>
+                    <h2 className="text-2xl font-medium">All Deliveries</h2>
                     <Link
                         href="/admin/dashboard"
-                        className="text-sm px-4 py-2 border border-gray-300 rounded-lg bg-white/80 text-gray-700 hover:bg-gray-100 transition"
+                        className="text-sm px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-100 transition"
                     >
                         ← Back to Dashboard
                     </Link>
                 </div>
 
+                {/* Delivery Cards */}
                 {deliveries.length === 0 ? (
                     <p className="text-gray-600">No deliveries created yet.</p>
                 ) : (
-                    <ul className="space-y-5">
+                    <ul className="space-y-6">
                         {deliveries
                             .sort((a, b) => {
                                 const today = new Date();
@@ -70,37 +78,37 @@ export default async function AdminDeliveriesPage() {
                                 };
 
                                 const dateCompare =
-                                    getDatePriority(a.deliveryDate) - getDatePriority(b.deliveryDate);
+                                    getDatePriority(a.deliveryDate) -
+                                    getDatePriority(b.deliveryDate);
                                 if (dateCompare !== 0) return dateCompare;
-
                                 return getStatusPriority(a.status) - getStatusPriority(b.status);
                             })
                             .map((delivery) => (
                                 <li
                                     key={delivery.id}
-                                    className="relative bg-white/60 backdrop-blur-lg border border-gray-200 rounded-2xl p-5 shadow-md hover:shadow-lg transition"
+                                    className="relative bg-white/60 backdrop-blur-md border border-gray-200 rounded-xl px-6 py-5 shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.01]"
                                 >
-                                    {/* Status badge */}
+                                    {/* Status Badge */}
                                     <div className="absolute top-4 right-4">
                                         <span
                                             className={`text-xs font-medium px-3 py-1 rounded-full ${delivery.status === "DELIVERED"
-                                                    ? "bg-green-100 text-green-800"
+                                                    ? "bg-green-50 text-green-800"
                                                     : delivery.status === "IN_TRANSIT"
-                                                        ? "bg-yellow-100 text-yellow-800"
+                                                        ? "bg-yellow-50 text-yellow-800"
                                                         : delivery.status === "FAILED_ATTEMPT"
-                                                            ? "bg-red-100 text-red-800"
-                                                            : "bg-red-100 text-red-800"
+                                                            ? "bg-red-50 text-red-700"
+                                                            : "bg-gray-200 text-gray-800"
                                                 }`}
                                         >
                                             {delivery.status.replace("_", " ")}
                                         </span>
                                     </div>
 
-                                    <h4 className="font-semibold text-lg text-gray-800 mb-2">
+                                    <h3 className="font-semibold text-lg text-gray-900 mb-2">
                                         {delivery.description}
-                                    </h4>
+                                    </h3>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm text-gray-700">
                                         <p>
                                             <span className="font-medium">Address:</span> {delivery.address}
                                         </p>
@@ -120,29 +128,29 @@ export default async function AdminDeliveriesPage() {
                                             {delivery.driver ? (
                                                 delivery.driver.name
                                             ) : (
-                                                <span className="text-red-500">Unassigned</span>
+                                                <span className="text-red-600">Unassigned</span>
                                             )}
                                         </p>
                                     </div>
 
-                                    {delivery.status === "FAILED_ATTEMPT" && delivery.failureReason && (
-                                        <p className="mt-3 text-red-700 font-medium">
-                                            <b>Failed Reason:</b> {delivery.failureReason}
-                                        </p>
-                                    )}
+                                    {delivery.status === "FAILED_ATTEMPT" &&
+                                        delivery.failureReason && (
+                                            <p className="mt-4 text-sm text-red-700 font-medium">
+                                                <b>Failed Reason:</b> {delivery.failureReason}
+                                            </p>
+                                        )}
 
                                     {!delivery.assigned && (
-                                        <div className="mt-4">
+                                        <div className="mt-5">
                                             <Link
                                                 href={`/admin/deliveries/${delivery.id}/assign`}
-                                                className="inline-block text-sm bg-black text-white px-4 py-2 rounded-md hover:opacity-90 transition"
+                                                className="inline-block text-sm font-medium bg-black text-white px-4 py-2 rounded-md hover:opacity-90 hover:scale-[1.01] transition"
                                             >
                                                 Assign
                                             </Link>
                                         </div>
                                     )}
                                 </li>
-
                             ))}
                     </ul>
                 )}

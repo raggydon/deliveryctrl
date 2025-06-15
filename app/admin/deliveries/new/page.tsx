@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import React from "react";
 
 export default function CreateDeliveryPage() {
     const router = useRouter();
@@ -13,7 +12,7 @@ export default function CreateDeliveryPage() {
     const [timePreference, setTimePreference] = useState<"MORNING" | "EVENING">("MORNING");
     const [deliveryDate, setDeliveryDate] = useState("");
     const [vehiclePreference, setVehiclePreference] = useState<"BIKE" | "MINI_TRUCK">("BIKE");
-    const [price, setPrice] = useState<number>(0);
+    const [price, setPrice] = useState<number>(50);
     const [error, setError] = useState("");
     const [deliveryCreated, setDeliveryCreated] = useState(false);
 
@@ -55,7 +54,6 @@ export default function CreateDeliveryPage() {
 
     const handleBulkUpload = async () => {
         if (!fileToUpload) return;
-
         const formData = new FormData();
         formData.append("file", fileToUpload);
 
@@ -74,68 +72,66 @@ export default function CreateDeliveryPage() {
     };
 
     useEffect(() => {
-        if (size === "SMALL" && vehiclePreference === "BIKE") {
-            setPrice(50);
-        } else if (size === "SMALL" && vehiclePreference === "MINI_TRUCK") {
-            setPrice(80);
-        } else if (size === "LARGE" && vehiclePreference === "MINI_TRUCK") {
-            setPrice(120);
-        }
+        if (size === "SMALL" && vehiclePreference === "BIKE") setPrice(50);
+        else if (size === "SMALL" && vehiclePreference === "MINI_TRUCK") setPrice(80);
+        else if (size === "LARGE") setPrice(120);
     }, [size, vehiclePreference]);
 
     return (
-        <main className="min-h-screen bg-white text-black px-6 py-10">
+        <main className="min-h-screen px-6 py-16 text-[#1c1c1e]">
             <div className="mb-10 flex justify-center">
-                <div className="text-3xl font-bold tracking-tight bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-200 px-6 py-4">
-                    Delivery<span className="text-gray-500">CTRL</span>
+                <div className="text-3xl font-medium tracking-tight text-gray-800 backdrop-blur-md  px-8 py-4">
+                    <h1 className="text-4xl font-[450] tracking-tight">
+                        Delivery<span className="text-gray-400">CTRL</span>
+                    </h1>
                 </div>
             </div>
 
-            <div className="max-w-2xl mx-auto rounded-2xl shadow-xl p-8 border border-gray-300 backdrop-blur-md bg-white/60">
-                <h1 className="text-2xl font-semibold mb-6">Create New Delivery</h1>
+            <div className="max-w-xl mx-auto bg-white rounded-xl border border-gray-200 shadow-md px-6 py-8">
+                <h2 className="text-2xl font-semibold mb-6">Create New Delivery</h2>
 
                 {deliveryCreated && (
-                    <p className="text-gray-500 text-sm font-medium mb-4 text-center">
-                        Delivery created successfully.
-                    </p>
+                    <p className="text-green-600 text-sm mb-4 text-center font-medium">Delivery created successfully.</p>
                 )}
+                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
 
-                {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
-
-                <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <input
                         type="text"
-                        placeholder="Delivery Description"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         required
-                        className="border border-gray-300 rounded px-3 py-2 bg-white text-black"
+                        placeholder="Delivery Description"
+                        className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
                     />
+
                     <input
                         type="text"
-                        placeholder="Delivery Address"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
                         required
-                        className="border border-gray-300 rounded px-3 py-2 bg-white text-black"
+                        placeholder="Delivery Address"
+                        className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
                     />
+
                     <select
                         value={size}
                         onChange={(e) => {
-                            const newSize = e.target.value as "SMALL" | "LARGE";
-                            setSize(newSize);
-                            setVehiclePreference(newSize === "LARGE" ? "MINI_TRUCK" : "BIKE");
+                            const value = e.target.value as "SMALL" | "LARGE";
+                            setSize(value);
+                            setVehiclePreference(value === "LARGE" ? "MINI_TRUCK" : "BIKE");
                         }}
-                        className="border border-gray-300 rounded px-3 py-2 bg-white text-black"
+                        className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm bg-white"
                     >
                         <option value="SMALL">Small</option>
                         <option value="LARGE">Large</option>
                     </select>
+
                     <select
                         value={vehiclePreference}
                         onChange={(e) => setVehiclePreference(e.target.value as "BIKE" | "MINI_TRUCK")}
                         disabled={size === "LARGE"}
-                        className="border border-gray-300 rounded px-3 py-2 bg-white text-black"
+                        className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm bg-white"
                     >
                         {size === "SMALL" ? (
                             <>
@@ -146,28 +142,32 @@ export default function CreateDeliveryPage() {
                             <option value="MINI_TRUCK">Mini Truck (Required)</option>
                         )}
                     </select>
+
                     <select
                         value={timePreference}
                         onChange={(e) => setTimePreference(e.target.value as "MORNING" | "EVENING")}
-                        className="border border-gray-300 rounded px-3 py-2 bg-white text-black"
+                        className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm bg-white"
                     >
                         <option value="MORNING">Morning</option>
                         <option value="EVENING">Evening</option>
                     </select>
+
                     <input
                         type="date"
                         value={deliveryDate}
                         onChange={(e) => setDeliveryDate(e.target.value)}
                         required
-                        className="border border-gray-300 rounded px-3 py-2 bg-white text-black"
+                        className="w-full border border-gray-300 rounded-md px-4 py-2 text-sm bg-white"
                     />
-                    <div className="flex items-center justify-between bg-gray-100 border border-gray-300 rounded px-3 py-2">
-                        <label className="font-medium">Delivery Price</label>
-                        <span className="text-gray-700">₹{price}</span>
+
+                    <div className="flex items-center justify-between px-4 py-2 bg-gray-100 rounded-md border border-gray-300">
+                        <label className="text-sm font-medium">Delivery Price</label>
+                        <span className="text-sm text-gray-700">₹{price}</span>
                     </div>
+
                     <button
                         type="submit"
-                        className="mt-2 bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-lg transition"
+                        className="w-full bg-black text-white text-sm font-medium px-4 py-2 rounded-md transition transform hover:scale-[1.02] hover:-translate-y-[2px] hover:shadow-md"
                     >
                         Confirm & Create Delivery
                     </button>
@@ -181,11 +181,11 @@ export default function CreateDeliveryPage() {
                         type="file"
                         accept=".xlsx"
                         onChange={(e) => setFileToUpload(e.target.files?.[0] || null)}
-                        className="text-sm border border-gray-300 bg-white px-4 py-2 rounded-md w-full max-w-sm mx-auto"
+                        className="text-sm border border-gray-300 bg-white px-4 py-2 rounded-md w-full"
                     />
                     <button
                         onClick={handleBulkUpload}
-                        className="bg-gray-800 hover:bg-black text-white text-sm px-4 py-2 rounded transition"
+                        className="bg-black text-white text-sm px-4 py-2 rounded-md hover:scale-[1.01] transition"
                     >
                         Upload Deliveries
                     </button>
@@ -214,10 +214,10 @@ export default function CreateDeliveryPage() {
                 )}
             </div>
 
-            <div className="mt-12 flex justify-center">
+            <div className="mt-16 flex justify-center">
                 <button
                     onClick={() => router.push("/admin/dashboard")}
-                    className="text-sm px-4 py-2 border border-gray-300 rounded-lg bg-white/80 text-gray-700 hover:bg-gray-100 transition"
+                    className="text-sm px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-100 transition"
                 >
                     ← Back to Dashboard
                 </button>

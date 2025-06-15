@@ -84,30 +84,32 @@ export default function DriverDeliveries() {
     };
 
     return (
-        <main className="max-w-4xl mx-auto px-6 py-10 text-black">
+        <main className="min-h-screen bg-gradient-to-br from-[#f9f9fb] to-[#eef0f5] text-[#1c1c1e] px-4 py-12">
             {/* Branding */}
-            <div className="mb-8 flex justify-center">
-                <div className="text-3xl font-bold tracking-tight bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-200 px-6 py-4">
-                    Delivery<span className="text-gray-500">CTRL</span>
+            <div className="mb-10 flex justify-center">
+                <div className="text-3xl font-medium tracking-tight text-gray-800 backdrop-blur-md  px-8 py-4">
+                    <h1 className="text-4xl font-[450] tracking-tight">
+                        Delivery<span className="text-gray-400">CTRL</span>
+                    </h1>
                 </div>
             </div>
 
-            {/* Page Heading */}
-            <div className="mb-6 text-center">
+            {/* Heading */}
+            <div className="mb-8 text-center">
                 <h1 className="text-2xl font-semibold">Assigned Deliveries</h1>
-                <p className="text-sm text-gray-600 mt-1">Update statuses as you complete them</p>
+                <p className="text-sm text-gray-500 mt-1">Update statuses as you complete them</p>
             </div>
 
             {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
 
-            <ul className="space-y-4">
+            <ul className="space-y-6 max-w-3xl mx-auto">
                 {deliveries
                     .slice()
                     .sort(sortDeliveries)
                     .map((delivery) => (
                         <li
                             key={delivery.id}
-                            className="bg-white/60 backdrop-blur-md border border-gray-200 rounded-xl p-5 shadow-sm transition hover:shadow-md"
+                            className="glass-card transition hover:shadow-md"
                         >
                             <div className="mb-2">
                                 <p className="font-medium text-lg text-gray-800">{delivery.description}</p>
@@ -136,6 +138,7 @@ export default function DriverDeliveries() {
                                 )}
                             </div>
 
+                            {/* Action Buttons */}
                             {delivery.status === "NOT_PICKED" && (
                                 <button
                                     onClick={() => updateStatus(delivery.id, "IN_TRANSIT")}
@@ -169,7 +172,7 @@ export default function DriverDeliveries() {
             </ul>
 
             {/* Back Button */}
-            <div className="mt-10 flex justify-center">
+            <div className="mt-12 flex justify-center">
                 <button
                     onClick={() => router.push("/driver/home")}
                     className="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm px-4 py-2 rounded transition"
@@ -180,13 +183,13 @@ export default function DriverDeliveries() {
 
             {/* Reason Modal */}
             {showReasonModal && selectedDeliveryId && (
-                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                    <div className="bg-white p-6 rounded-xl shadow-lg w-[90%] max-w-md">
+                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                    <div className="glass-card w-[90%] max-w-md p-6">
                         <h2 className="text-lg font-semibold mb-2 text-gray-800">Reason for Failed Delivery</h2>
                         <textarea
                             value={failureReason}
                             onChange={(e) => setFailureReason(e.target.value)}
-                            className="w-full border border-gray-300 rounded p-2 mb-4 resize-none"
+                            className="w-full border border-gray-300 rounded p-2 mb-4 resize-none bg-white/90"
                             rows={4}
                             placeholder="e.g. Customer not available, wrong address..."
                         ></textarea>

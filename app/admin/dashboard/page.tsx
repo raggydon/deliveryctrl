@@ -1,19 +1,15 @@
-// app/admin/dashboard/page.tsx
+// 'use client';
+
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
 import LogoutButton from "@/app/components/LogoutButton";
-
 
 export default async function AdminDashboard() {
     const session = await getServerSession(authOptions);
-
-    if (!session || session.user.role !== "ADMIN") {
-        redirect("/sign-in");
-    }
+    if (!session || session.user.role !== "ADMIN") redirect("/sign-in");
 
     const admin = await prisma.admin.findUnique({
         where: { userId: session.user.id },
@@ -26,69 +22,70 @@ export default async function AdminDashboard() {
         },
     });
 
-    if (!admin) {
-        return <p className="text-red-500 p-4">Admin profile not found.</p>;
-    }
+    if (!admin) return <p className="text-red-500 p-4">Admin profile not found.</p>;
 
     return (
-        <main className="max-w-5xl mx-auto px-6 py-8 text-black">
-            {/* Top Branding */}
-            <div className="mb-8 flex justify-between items-center">
-                {/* Branding */}
-                <div className="text-3xl font-bold tracking-tight bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-200 px-6 py-4">
-                    Delivery<span className="text-gray-500">CTRL</span>
-                </div>
+        <main className="max-w-7xl mx-auto px-6 py-16 text-[#1c1c1e]">
+            {/* Branding */}
+            <header className="flex justify-between items-center mb-14 ">
+                <h1 className="text-4xl font-[450] tracking-tight">
+                    Delivery<span className="text-gray-400">CTRL</span>
+                </h1>
+                <LogoutButton />
+            </header>
 
-                {/* Logout Button */}
-                <div className="ml-auto">
-                    <LogoutButton />
-                </div>
-            </div>
+            {/* Welcome */}
+            <section className="mb-10">
+                <h2 className="text-2xl font-[450]">Welcome, {session.user.name}</h2>
+                <p className="text-sm text-gray-500 mt-1">Admin Dashboard</p>
+            </section>
 
-            {/* Welcome Message */}
-            <div className="mb-6">
-                <h2 className="text-2xl font-semibold">Welcome, {session.user.name}</h2>
-                <p className="text-gray-600 mt-2 text-sm">Admin Dashboard</p>
-            </div>
-
-            {/* Invite Key Display */}
+            {/* Invite Key */}
             {admin.inviteKey && (
-                <div className="mb-6 text-sm">
-                    <div className="inline-block bg-gray-100 border border-gray-300 rounded-md px-4 py-2 shadow-sm">
-                        <span className="text-gray-600 font-medium mr-2">Your Driver Invite Key:</span>
-                        <span className="text-gray-900 font-mono tracking-wide">{admin.inviteKey}</span>
+                <section className="mb-10">
+                    <div className="bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm text-sm max-w-md">
+                        <div className="flex items-center justify-between">
+                            <span className="font-medium text-gray-800">Driver Invite Key</span>
+                        </div>
+                        <div className="mt-2">
+                            <span className="font-mono text-base tracking-wide text-gray-700 select-all">
+                                {admin.inviteKey}
+                            </span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-3 leading-snug">
+                            Share this with your driver when they sign up.
+                        </p>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Share this with your drivers when they sign up.</p>
-                </div>
+                </section>
+
             )}
 
-            {/* Navigation Buttons */}
-            <div className="flex flex-wrap gap-4 mb-10">
+            {/* Buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-14">
                 <a
                     href="/admin/deliveries/new"
-                    className="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-md transition"
+                    className="bg-black text-white px-6 py-3 rounded-md text-sm font-[450] shadow-sm transition transform hover:scale-[1.02] hover:-translate-y-[2px] hover:shadow-md cursor-pointer"
                 >
                     Create New Delivery
                 </a>
                 <a
                     href="/admin/deliveries"
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md transition"
+                    className="bg-white text-black border border-gray-200 px-6 py-3 rounded-md text-sm font-[450] shadow-sm hover:shadow-md hover:scale-[1.02] hover:-translate-y-[2px] transition cursor-pointer"
                 >
                     View All Deliveries
                 </a>
                 <Link href="/admin/drivers">
-                    <button className="bg-gray-800 hover:bg-black text-white px-4 py-2 rounded-md transition">
+                    <button className="bg-black text-white px-6 py-3 rounded-md text-sm font-[450] shadow-sm hover:shadow-md hover:scale-[1.02] hover:-translate-y-[2px] transition cursor-pointer">
                         Your Drivers
                     </button>
                 </Link>
             </div>
 
-            {/* Recent Deliveries Section */}
-            <div className="mt-6">
-                <h3 className="text-xl font-semibold mb-4">Recent Deliveries</h3>
-
+            {/* Recent Deliveries */}
+            <section>
+                <h3 className="text-xl font-[450] mb-6">Recent Deliveries</h3>
                 {admin.deliveries && admin.deliveries.length > 0 ? (
-                    <ul className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {admin.deliveries
                             .sort((a, b) => {
                                 const today = new Date();
@@ -103,72 +100,58 @@ export default async function AdminDashboard() {
                                     if (status === "FAILED_ATTEMPT") return 2;
                                     return 3;
                                 };
-                                const dateCompare =
-                                    getDatePriority(a.deliveryDate) -
-                                    getDatePriority(b.deliveryDate);
+                                const dateCompare = getDatePriority(a.deliveryDate) - getDatePriority(b.deliveryDate);
                                 if (dateCompare !== 0) return dateCompare;
                                 return getStatusPriority(a.status) - getStatusPriority(b.status);
                             })
-                            .slice(0, 5)
+                            .slice(0, 6)
                             .map((delivery) => (
-                                <li
+                                <div
                                     key={delivery.id}
-                                    className="bg-white/60 backdrop-blur-lg border border-gray-200 rounded-2xl p-5 shadow-md transition hover:shadow-lg"
+                                    className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm transition transform hover:shadow-md hover:scale-[1.015] hover:-translate-y-[2px]"
                                 >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <h4 className="font-semibold text-gray-800 text-lg">
-                                            {delivery.description}
-                                        </h4>
+                                    <div className="flex justify-between items-start mb-3">
+                                        <h4 className="text-base font-[450]">{delivery.description}</h4>
                                         <span
-                                            className={`text-sm px-2 py-0.5 rounded-full ${delivery.status === "DELIVERED"
-                                                    ? "bg-green-100 text-green-800"
+                                            className={`text-xs font-medium px-2 py-1 rounded-full ${delivery.status === "DELIVERED"
+                                                    ? "bg-gray-900 text-white"
                                                     : delivery.status === "IN_TRANSIT"
-                                                        ? "bg-yellow-100 text-yellow-800"
+                                                        ? "bg-[#2c5282] text-white"
                                                         : delivery.status === "FAILED_ATTEMPT"
-                                                            ? "bg-red-100 text-red-800"
-                                                            : "bg-red-100 text-red-800"
+                                                            ? "bg-[#e11d48] text-white"
+                                                            : "bg-gray-100 text-gray-600"
                                                 }`}
                                         >
                                             {delivery.status.replace("_", " ")}
                                         </span>
                                     </div>
-
-                                    <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
+                                    <div className="space-y-1 text-sm text-gray-700">
                                         <p>
-                                            <span className="font-medium">Date:</span>{" "}
-                                            {new Date(delivery.deliveryDate).toDateString()}
+                                            <strong>Date:</strong> {new Date(delivery.deliveryDate).toDateString()}
                                         </p>
                                         <p>
-                                            <span className="font-medium">Size:</span> {delivery.size}
+                                            <strong>Size:</strong> {delivery.size}
                                         </p>
                                         <p>
-                                            <span className="font-medium">Vehicle:</span>{" "}
-                                            {delivery.vehiclePreference.replace("_", " ")}
+                                            <strong>Vehicle:</strong> {delivery.vehiclePreference.replace("_", " ")}
                                         </p>
                                         <p>
-                                            <span className="font-medium">Driver:</span>{" "}
-                                            {delivery.driver ? (
-                                                delivery.driver.name
-                                            ) : (
-                                                <span className="text-red-500">Unassigned</span>
-                                            )}
+                                            <strong>Driver:</strong>{" "}
+                                            {delivery.driver ? delivery.driver.name : <span className="text-red-500">Unassigned</span>}
                                         </p>
-
-                                        {delivery.status === "FAILED_ATTEMPT" &&
-                                            delivery.failureReason && (
-                                                <p className="col-span-2 text-red-700 font-medium mt-2">
-                                                    🚫 <b>Failed Reason:</b> {delivery.failureReason}
-                                                </p>
-                                            )}
+                                        {delivery.status === "FAILED_ATTEMPT" && delivery.failureReason && (
+                                            <p className="text-red-600 font-medium pt-2">
+                                                Failed Reason: {delivery.failureReason}
+                                            </p>
+                                        )}
                                     </div>
-                                </li>
+                                </div>
                             ))}
-                    </ul>
+                    </div>
                 ) : (
-                    <p className="text-gray-500">No deliveries found.</p>
+                    <p className="text-sm text-gray-500 font-mono">No deliveries found.</p>
                 )}
-            </div>
-
+            </section>
         </main>
     );
 }

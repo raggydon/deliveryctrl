@@ -21,4 +21,3 @@ export async function DELETE(
         return NextResponse.json({ error: "Driver not found or error occurred" }, { status: 500 });
     }
 }
-k

@@ -6,10 +6,6 @@
   A full-stack logistics and delivery management web app designed for admin-driver coordination with shift-based logic, salary automation, and bulk delivery support.
 </p>
 
-<p align="center">
-  <img src="https://raw.githubusercontent.com/platane/platane/output/github-contribution-grid-snake.svg" alt="animated contribution snake" />
-</p>
-
 <h3 align="center">📦 Key Features</h3>
 
 <ul>
@@ -18,7 +14,7 @@
   <li><b>Shift System:</b> Morning, Evening, or Both — impacts delivery eligibility and salary</li>
   <li><b>Smart Salary Rules:</b> Auto-calculated based on attendance, shift, vehicle, and manual overrides</li>
   <li><b>Bulk Delivery Upload:</b> Upload an Excel (.xlsx) to add multiple deliveries at once</li>
-  <li><b>Live Status Updates:</b> Drivers can mark deliveries as Picked, In Transit, Delivered</li>
+  <li><b>Live Status Updates:</b> Drivers can mark deliveries as Picked, In Transit, Delivered or Failed.</li>
   <li><b>Payout History:</b> Salary breakdown with date-wise tracking & payout logs for both admin and driver</li>
   <li><b>Mobile-Responsive + PWA:</b> Add-to-home prompt and optimized UX across devices</li>
 </ul>
@@ -28,12 +24,12 @@
 <p align="center">
   <b>Frontend:</b> Next.js 14 • TailwindCSS • React<br/>
   <b>Backend:</b> Next.js API Routes • Prisma ORM • PostgreSQL<br/>
-  <b>Auth:</b> NextAuth.js (Google + Credentials)<br/>
+  <b>Auth:</b> NextAuth.js<br/>
   <b>Features:</b> Excel Parsing with SheetJS • Attendance Tracking • Delivery Status Transitions • Salary Engine<br/>
   <b>Deployable As:</b> PWA-compatible web app
 </p>
 
-<h3 align="center">💻 Getting Started</h3>
+<h3 align="center">💻 Get Started</h3>
 
 <ol>
   <li>Clone the repository:
